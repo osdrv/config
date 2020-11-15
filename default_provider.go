@@ -10,29 +10,17 @@ type DefaultProvider struct {
 	ready    chan struct{}
 }
 
-var (
-	defaults map[string]Value
-)
-
-func init() {
-	defaults = map[string]Value{
-		CfgPathKey:     "/etc/flowd/flow-config.yaml",
-		PluginPathKey:  "/etc/flowd/plugins",
-		SystemMaxprocs: 1,
-	}
-}
-
 var _ Provider = (*DefaultProvider)(nil)
 
 // NewDefaultProvider is a constructor for DefaultProvider.
 func NewDefaultProvider(repo *Repository, weight int) (*DefaultProvider, error) {
-	return NewDefaultProviderWithRegistry(repo, weight, defaults)
+	return NewDefaultProviderWithDefaults(repo, weight, map[string]Value{})
 }
 
-// NewDefaultProviderWithRegistry is an alternative constructor for
+// NewDefaultProviderWithDefaults is an alternative constructor for
 // DefaultProvider. Accepts an extra registry argument as a complete replacement
 // for the default one.
-func NewDefaultProviderWithRegistry(repo *Repository, weight int, registry map[string]Value) (*DefaultProvider, error) {
+func NewDefaultProviderWithDefaults(repo *Repository, weight int, registry map[string]Value) (*DefaultProvider, error) {
 	prov := &DefaultProvider{
 		weight:   weight,
 		registry: registry,

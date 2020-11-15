@@ -19,15 +19,6 @@ func TestDefaultProviderSetUp(t *testing.T) {
 			[]string{},
 		},
 		{
-			"defaults",
-			defaults,
-			[]string{
-				"config.path",
-				"plugin.path",
-				"system.maxprocs",
-			},
-		},
-		{
 			"Custom registry",
 			map[string]Value{
 				"foo.bar.baz": 42,
@@ -41,7 +32,7 @@ func TestDefaultProviderSetUp(t *testing.T) {
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
 			repo := NewRepository()
-			prov, err := NewDefaultProviderWithRegistry(repo, 0, testCase.registry)
+			prov, err := NewDefaultProviderWithDefaults(repo, 0, testCase.registry)
 			if err != nil {
 				t.Fatalf("failed to initialize a new default provider: %s", err)
 			}
