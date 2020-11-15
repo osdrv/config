@@ -69,7 +69,7 @@ func (ep *EnvProvider) SetUp(repo *Repository) error {
 		if !strings.HasPrefix(kv, ep.prefix) {
 			continue
 		}
-		kv = kv[5:]
+		kv = kv[len(ep.prefix):]
 		if ix := strings.Index(kv, "="); ix != -1 {
 			k, v = kv[:ix], kv[ix+1:]
 		} else {

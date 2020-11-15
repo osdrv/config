@@ -6,22 +6,11 @@ import (
 	"strings"
 )
 
-var (
-	cfgFile    string
-	pluginPath string
-)
-
 // Redefined in tests
 var regFlags = func(cp *CliProvider) {
 	if !flag.Parsed() {
 		flag.Var(cp, "o", "Extra options")
 		flag.Parse()
-		if len(cfgFile) > 0 {
-			cp.registry[CfgPathKey] = cfgFile
-		}
-		if len(pluginPath) > 0 {
-			cp.registry[PluginPathKey] = pluginPath
-		}
 	}
 }
 
