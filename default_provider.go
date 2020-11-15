@@ -6,16 +6,16 @@ package config
 // the provider set that have been activated.
 type DefaultProvider struct {
 	weight   int
-	registry map[string]types.Value
+	registry map[string]Value
 	ready    chan struct{}
 }
 
 var (
-	defaults map[string]types.Value
+	defaults map[string]Value
 )
 
 func init() {
-	defaults = map[string]types.Value{
+	defaults = map[string]Value{
 		CfgPathKey:     "/etc/flowd/flow-config.yaml",
 		PluginPathKey:  "/etc/flowd/plugins",
 		SystemMaxprocs: 1,
@@ -32,7 +32,7 @@ func NewDefaultProvider(repo *Repository, weight int) (*DefaultProvider, error) 
 // NewDefaultProviderWithRegistry is an alternative constructor for
 // DefaultProvider. Accepts an extra registry argument as a complete replacement
 // for the default one.
-func NewDefaultProviderWithRegistry(repo *Repository, weight int, registry map[string]types.Value) (*DefaultProvider, error) {
+func NewDefaultProviderWithRegistry(repo *Repository, weight int, registry map[string]Value) (*DefaultProvider, error) {
 	prov := &DefaultProvider{
 		weight:   weight,
 		registry: registry,
@@ -55,7 +55,7 @@ func (dp *DefaultProvider) Weight() int { return dp.weight }
 func (dp *DefaultProvider) SetUp(repo *Repository) error {
 	defer close(dp.ready)
 	for k := range dp.registry {
-		if err := repo.RegisterKey(types.NewKey(k), dp); err != nil {
+		if err := repo.RegisterKey(NewKey(k), dp); err != nil {
 			return err
 		}
 	}
@@ -66,10 +66,10 @@ func (dp *DefaultProvider) SetUp(repo *Repository) error {
 func (dp *DefaultProvider) TearDown(*Repository) error { return nil }
 
 // Get is the primary method for fetching values from the default registry
-func (dp *DefaultProvider) Get(key types.Key) (*types.KeyValue, bool) {
+func (dp *DefaultProvider) Get(key Key) (*KeyValue, bool) {
 	<-dp.ready
 	if val, ok := dp.registry[key.String()]; ok {
-		return &types.KeyValue{Key: key, Value: val}, ok
+		return &KeyValue{Key: key, Value: val}, ok
 	}
 	return nil, false
 }

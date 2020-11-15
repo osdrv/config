@@ -18,7 +18,7 @@ const (
 )
 
 // TODO(olegs): implement listener interface
-// type Listener func(*types.KeyValue)
+// type Listener func(*KeyValue)
 
 // Provider is a generic interface for config providers.
 // A method initializing a new instance of Provider must conform to Constructor
@@ -28,12 +28,12 @@ type Provider interface {
 	Depends() []string
 	SetUp(*Repository) error
 	TearDown(*Repository) error
-	Get(types.Key) (*types.KeyValue, bool)
+	Get(Key) (*KeyValue, bool)
 	Weight() int
 }
 
 var (
-	mappers   *cast.MapperNode
+	mappers   *MapperNode
 	mappersMx sync.Mutex
 )
 
@@ -55,7 +55,7 @@ func newNode() *node {
 	}
 }
 
-func (n *node) explain(key types.Key) map[string]interface{} {
+func (n *node) explain(key Key) map[string]interface{} {
 	res := map[string]interface{}{}
 	if len(n.providers) > 0 {
 		valdescr := make([]map[string]interface{}, 0, len(n.providers))
@@ -77,7 +77,7 @@ func (n *node) explain(key types.Key) map[string]interface{} {
 	return res
 }
 
-func (n *node) add(key types.Key, prov Provider) {
+func (n *node) add(key Key, prov Provider) {
 	ptr := n
 	for _, k := range key {
 		if _, ok := ptr.children[k]; !ok {
@@ -91,7 +91,7 @@ func (n *node) add(key types.Key, prov Provider) {
 	})
 }
 
-func (n *node) find(key types.Key) *node {
+func (n *node) find(key Key) *node {
 	ptr := n
 	for _, k := range key {
 		if _, ok := ptr.children[k]; !ok {
@@ -102,7 +102,7 @@ func (n *node) find(key types.Key) *node {
 	return ptr
 }
 
-func (n *node) findOrCreate(key types.Key) *node {
+func (n *node) findOrCreate(key Key) *node {
 	ptr := n
 	for _, k := range key {
 		if _, ok := ptr.children[k]; !ok {
@@ -113,11 +113,11 @@ func (n *node) findOrCreate(key types.Key) *node {
 	return ptr
 }
 
-// func (n *node) subscribe(key types.Key, listener Listener) {
+// func (n *node) subscribe(key Key, listener Listener) {
 // 	panic("not implemented")
 // }
 
-func (n *node) get(repo *Repository, key types.Key) (*types.KeyValue, bool) {
+func (n *node) get(repo *Repository, key Key) (*KeyValue, bool) {
 	ptr := n.find(key)
 	if ptr == nil {
 		return nil, false
@@ -140,10 +140,10 @@ func (n *node) get(repo *Repository, key types.Key) (*types.KeyValue, bool) {
 	return nil, false
 }
 
-func (n *node) getAll(repo *Repository, pref types.Key) *types.KeyValue {
-	res := make(map[string]types.Value)
+func (n *node) getAll(repo *Repository, pref Key) *KeyValue {
+	res := make(map[string]Value)
 	for k, ch := range n.children {
-		key := types.Key(append(pref, k))
+		key := Key(append(pref, k))
 		if len(ch.providers) > 0 {
 			// Providers are expected to be sorted
 			for _, prov := range ch.providers {
@@ -160,7 +160,7 @@ func (n *node) getAll(repo *Repository, pref types.Key) *types.KeyValue {
 			res[k] = ch.getAll(repo, key).Value
 		}
 	}
-	mkv, err := repo.doMap(&types.KeyValue{Key: pref, Value: res})
+	mkv, err := repo.doMap(&KeyValue{Key: pref, Value: res})
 	if err != nil {
 		panic(err)
 	}
@@ -175,7 +175,7 @@ func (n *node) getAll(repo *Repository, pref types.Key) *types.KeyValue {
 // Plugin code can instantiate and use locally defined repositories. Having
 // independent repositories is practical.
 type Repository struct {
-	mappers   *cast.MapperNode
+	mappers   *MapperNode
 	root      *node
 	providers map[string]Provider
 	mx        sync.Mutex
@@ -184,7 +184,7 @@ type Repository struct {
 // NewRepository returns a new instance of an empty Repository.
 func NewRepository() *Repository {
 	return &Repository{
-		mappers:   cast.NewMapperNode(),
+		mappers:   NewMapperNode(),
 		root:      newNode(),
 		providers: make(map[string]Provider),
 		mx:        sync.Mutex{},
@@ -229,11 +229,11 @@ func (repo *Repository) TearDown() error {
 }
 
 func (repo *Repository) traverseProviders() ([]Provider, error) {
-	provList := make([]data.TopologyNode, 0, len(repo.providers))
+	provList := make([]TopologyNode, 0, len(repo.providers))
 	for _, prov := range repo.providers {
 		provList = append(provList, prov)
 	}
-	top := data.NewTopology(provList...)
+	top := NewTopology(provList...)
 	for name, prov := range repo.providers {
 		for _, dep := range prov.Depends() {
 			top.Connect(repo.providers[name], repo.providers[dep])
@@ -254,11 +254,11 @@ func (repo *Repository) traverseProviders() ([]Provider, error) {
 // Multiple non-overlapping schemas might be registered sequentually with
 // an equivalence of registering a composite schema at once.
 // Returns an error if the root mapper node failes to register the schema.
-func (repo *Repository) DefineSchema(s cast.Schema) error {
+func (repo *Repository) DefineSchema(s Schema) error {
 	return repo.mappers.DefineSchema(s)
 }
 
-func (repo *Repository) doMap(kv *types.KeyValue) (*types.KeyValue, error) {
+func (repo *Repository) doMap(kv *KeyValue) (*KeyValue, error) {
 	return repo.mappers.Map(kv)
 }
 
@@ -278,7 +278,7 @@ func (repo *Repository) RegisterProvider(prov Provider) {
 // If a provider can serve multiple keys, every key registration must be
 // created explicitly, 1 at a time.
 // This method is thread safe.
-func (repo *Repository) RegisterKey(key types.Key, prov Provider) error {
+func (repo *Repository) RegisterKey(key Key, prov Provider) error {
 	if prov == nil {
 		return fmt.Errorf("provider for key %s can not be nil", key)
 	}
@@ -299,7 +299,7 @@ func (repo *Repository) RegisterKey(key types.Key, prov Provider) error {
 // Get is the primary interface for the stored data retrieval.
 // Returns the fetched value and a bool flag indicating the lookup result.
 // If no value was retrived from the providers, bool flag is set to false.
-func (repo *Repository) Get(key types.Key) (types.Value, bool) {
+func (repo *Repository) Get(key Key) (Value, bool) {
 	// Non-empty key check prevents users from accessing a protected
 	// root node
 	if len(key) != 0 {

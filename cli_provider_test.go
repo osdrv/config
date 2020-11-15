@@ -11,17 +11,17 @@ import (
 func TestCliProviderSetUp(t *testing.T) {
 	tests := []struct {
 		name     string
-		registry map[string]types.Value
+		registry map[string]Value
 		wantRegs []string
 	}{
 		{
 			"An empty map",
-			map[string]types.Value{},
+			map[string]Value{},
 			[]string{},
 		},
 		{
 			"A sample map",
-			map[string]types.Value{
+			map[string]Value{
 				"foo.bar": 42,
 				"foo.baz": true,
 				"moo":     []string{"a", "b", "c"},
@@ -81,25 +81,25 @@ func TestCliProviderSet(t *testing.T) {
 	tests := []struct {
 		name         string
 		setVal       string
-		wantRegistry map[string]types.Value
+		wantRegistry map[string]Value
 		wantErr      error
 	}{
 		{
 			"A bool flag",
 			"foo",
-			map[string]types.Value{"foo": true},
+			map[string]Value{"foo": true},
 			nil,
 		},
 		{
 			"A simple value",
 			"foo=bar",
-			map[string]types.Value{"foo": "bar"},
+			map[string]Value{"foo": "bar"},
 			nil,
 		},
 		{
 			"Way too many = signs",
 			"foo=bar=baz",
-			map[string]types.Value{},
+			map[string]Value{},
 			fmt.Errorf("Possibly malformed flag (way too many `=`): %q", "foo=bar=baz"),
 		},
 	}

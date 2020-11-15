@@ -81,7 +81,7 @@ func (cp *CliProvider) SetUp(repo *Repository) error {
 	defer close(cp.ready)
 	regFlags(cp)
 	for k := range cp.registry {
-		if err := repo.RegisterKey(types.NewKey(k), cp); err != nil {
+		if err := repo.RegisterKey(NewKey(k), cp); err != nil {
 			return err
 		}
 	}
@@ -92,10 +92,10 @@ func (cp *CliProvider) SetUp(repo *Repository) error {
 func (cp *CliProvider) TearDown(*Repository) error { return nil }
 
 // Get is the primary method for fetching values from the cli registry
-func (cp *CliProvider) Get(key types.Key) (*types.KeyValue, bool) {
+func (cp *CliProvider) Get(key Key) (*KeyValue, bool) {
 	<-cp.ready
 	if v, ok := cp.registry[key.String()]; ok {
-		return &types.KeyValue{Key: key, Value: v}, ok
+		return &KeyValue{Key: key, Value: v}, ok
 	}
 	return nil, false
 }

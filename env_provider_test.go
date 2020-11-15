@@ -11,43 +11,43 @@ func TestEnvProviderSetUp(t *testing.T) {
 	tests := []struct {
 		name         string
 		regs         []string
-		wantRegistry map[string]types.Value
+		wantRegistry map[string]Value
 		wantRegs     []string
 	}{
 		{
 			"Empty set",
 			[]string{},
-			map[string]types.Value{},
+			map[string]Value{},
 			[]string{},
 		},
 		{
 			"Simple KV pair not preffixed with FLOW_",
 			[]string{"FOO=BAR"},
-			map[string]types.Value{},
+			map[string]Value{},
 			[]string{},
 		},
 		{
 			"Simple KV pair preffixed with FLOW_",
 			[]string{"FLOW_FOO=BAR"},
-			map[string]types.Value{"foo": "BAR"},
+			map[string]Value{"foo": "BAR"},
 			[]string{"foo"},
 		},
 		{
 			"A KV with nested key",
 			[]string{"FLOW_FOO_BAR_BAZ=moo"},
-			map[string]types.Value{"foo.bar.baz": "moo"},
+			map[string]Value{"foo.bar.baz": "moo"},
 			[]string{"foo.bar.baz"},
 		},
 		{
 			"A value with underscore",
 			[]string{"FLOW_FOO=bar_baz_moo"},
-			map[string]types.Value{"foo": "bar_baz_moo"},
+			map[string]Value{"foo": "bar_baz_moo"},
 			[]string{"foo"},
 		},
 		{
 			"A key with double underscore",
 			[]string{"FLOW_FOO__BAR=moo__baz"},
-			map[string]types.Value{"foo_bar": "moo__baz"},
+			map[string]Value{"foo_bar": "moo__baz"},
 			[]string{"foo_bar"},
 		},
 	}

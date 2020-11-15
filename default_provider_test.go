@@ -10,12 +10,12 @@ import (
 func TestDefaultProviderSetUp(t *testing.T) {
 	tests := []struct {
 		name     string
-		registry map[string]types.Value
+		registry map[string]Value
 		wantRegs []string
 	}{
 		{
 			"empty map",
-			map[string]types.Value{},
+			map[string]Value{},
 			[]string{},
 		},
 		{
@@ -29,7 +29,7 @@ func TestDefaultProviderSetUp(t *testing.T) {
 		},
 		{
 			"Custom registry",
-			map[string]types.Value{
+			map[string]Value{
 				"foo.bar.baz": 42,
 			},
 			[]string{"foo.bar.baz"},

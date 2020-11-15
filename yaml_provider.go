@@ -26,7 +26,7 @@ type YamlProvider struct {
 	source   string
 	options  *YamlProviderOptions
 	watcher  *fsnotify.Watcher
-	registry map[string]types.Value
+	registry map[string]Value
 	ready    chan struct{}
 }
 
@@ -49,7 +49,7 @@ func NewYamlProviderFromSource(repo *Repository, weight int, options *YamlProvid
 		source:   source,
 		weight:   weight,
 		options:  options,
-		registry: make(map[string]types.Value),
+		registry: make(map[string]Value),
 		ready:    make(chan struct{}),
 	}
 	repo.RegisterProvider(prov)
@@ -64,7 +64,7 @@ func (yp *YamlProvider) SetUp(repo *Repository) error {
 	defer close(yp.ready)
 
 	if len(yp.source) == 0 {
-		source, ok := repo.Get(types.NewKey(CfgPathKey))
+		source, ok := repo.Get(NewKey(CfgPathKey))
 		if !ok {
 			return fmt.Errorf("Failed to get yaml config path from repo")
 		}
@@ -95,7 +95,7 @@ func (yp *YamlProvider) SetUp(repo *Repository) error {
 	for k, v := range flatten(rawData) {
 		yp.registry[k] = v
 		if repo != nil {
-			if err := repo.RegisterKey(types.NewKey(k), yp); err != nil {
+			if err := repo.RegisterKey(NewKey(k), yp); err != nil {
 				return err
 			}
 		}
@@ -104,15 +104,15 @@ func (yp *YamlProvider) SetUp(repo *Repository) error {
 	return nil
 }
 
-func flatten(in map[interface{}]interface{}) map[string]types.Value {
-	out := make(map[string]types.Value)
+func flatten(in map[interface{}]interface{}) map[string]Value {
+	out := make(map[string]Value)
 	for k, v := range in {
 		if vmap, ok := v.(map[interface{}]interface{}); ok {
 			for sk, sv := range flatten(vmap) {
-				out[k.(string)+types.KeySepCh+sk] = types.Value(sv)
+				out[k.(string)+KeySepCh+sk] = Value(sv)
 			}
 		} else {
-			out[k.(string)] = types.Value(v)
+			out[k.(string)] = Value(v)
 		}
 	}
 	return out
@@ -137,10 +137,10 @@ func (yp *YamlProvider) TearDown(repo *Repository) error {
 	return nil
 }
 
-func (yp *YamlProvider) Get(key types.Key) (*types.KeyValue, bool) {
+func (yp *YamlProvider) Get(key Key) (*KeyValue, bool) {
 	<-yp.ready
 	if v, ok := yp.registry[key.String()]; ok {
-		return &types.KeyValue{Key: key, Value: v}, ok
+		return &KeyValue{Key: key, Value: v}, ok
 	}
 	return nil, false
 }

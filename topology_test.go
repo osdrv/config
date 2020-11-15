@@ -14,7 +14,7 @@ func (tn *testNode) GetName() string {
 	return tn.name
 }
 
-func newNode(name string) *testNode {
+func newTestNode(name string) *testNode {
 	return &testNode{name}
 }
 
@@ -32,7 +32,7 @@ func TestTopology_SortEmpty(t *testing.T) {
 
 func TestTopology_SortSingle(t *testing.T) {
 	nodes := []TopologyNode{
-		newNode("1"),
+		newTestNode("1"),
 	}
 	top := NewTopology(nodes...)
 	sorted, err := top.Sort()

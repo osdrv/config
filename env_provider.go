@@ -23,7 +23,7 @@ func canonise(key string) string {
 // * Double underscores are converted to singulars and preserved with no dot-conversion.
 type EnvProvider struct {
 	weight   int
-	registry map[string]types.Value
+	registry map[string]Value
 	ready    chan struct{}
 }
 
@@ -54,7 +54,7 @@ func (ep *EnvProvider) Weight() int { return ep.weight }
 // would be cleared out.
 func (ep *EnvProvider) SetUp(repo *Repository) error {
 	defer close(ep.ready)
-	registry := make(map[string]types.Value)
+	registry := make(map[string]Value)
 	var k string
 	var v interface{}
 
@@ -72,7 +72,7 @@ func (ep *EnvProvider) SetUp(repo *Repository) error {
 		k = canonise(k)
 		registry[k] = v
 		if repo != nil {
-			if err := repo.RegisterKey(types.NewKey(k), ep); err != nil {
+			if err := repo.RegisterKey(NewKey(k), ep); err != nil {
 				return err
 			}
 		}
@@ -87,10 +87,10 @@ func (ep *EnvProvider) SetUp(repo *Repository) error {
 func (ep *EnvProvider) TearDown(_ *Repository) error { return nil }
 
 // Get is the primary method to fetch values from the provider registry.
-func (ep *EnvProvider) Get(key types.Key) (*types.KeyValue, bool) {
+func (ep *EnvProvider) Get(key Key) (*KeyValue, bool) {
 	<-ep.ready
 	if val, ok := ep.registry[key.String()]; ok {
-		return &types.KeyValue{Key: key, Value: val}, ok
+		return &KeyValue{Key: key, Value: val}, ok
 	}
 	return nil, false
 }

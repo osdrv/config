@@ -10,7 +10,7 @@ import (
 // supposed to do conversion but mapping: produce complex structures from the
 // input maps.
 type Mapper interface {
-	Map(kv *types.KeyValue) (*types.KeyValue, error)
+	Map(kv *KeyValue) (*KeyValue, error)
 }
 
 // MapperNode is a data structure representing a trie node holding a Mapper and
@@ -41,7 +41,7 @@ func NewMapperNode() *MapperNode {
 //   Insert(Key("boo.bar.baz"), m2)
 // In this case Find(Key("foo.moo.baz")) returns m2, whereas
 // Find(Key("foo.bar.baz")) returns m1 because it's an exact match.
-func (mn *MapperNode) Insert(key types.Key, mpr Mapper) *MapperNode {
+func (mn *MapperNode) Insert(key Key, mpr Mapper) *MapperNode {
 	var ptr *MapperNode
 	// Non-empty key check prevents users from accessing the root node
 	if len(key) > 0 {
@@ -65,7 +65,7 @@ func (mn *MapperNode) Insert(key types.Key, mpr Mapper) *MapperNode {
 // following the provided Key path. If the needle node could not be found,
 // returns nil.
 // Find supports wildcards. See `Insert()` for more details.
-func (mn *MapperNode) Find(key types.Key) *MapperNode {
+func (mn *MapperNode) Find(key Key) *MapperNode {
 	if len(key) == 0 {
 		return mn
 	}
@@ -104,10 +104,10 @@ func (mn *MapperNode) Find(key types.Key) *MapperNode {
 // an absence of the mapper for the parental key. It's fully equivalent to
 // no-definition for key __self__.
 func (mn *MapperNode) DefineSchema(s Schema) error {
-	return mn.doDefineSchema(types.NewKey(""), s)
+	return mn.doDefineSchema(NewKey(""), s)
 }
 
-func (mn *MapperNode) doDefineSchema(key types.Key, schema Schema) error {
+func (mn *MapperNode) doDefineSchema(key Key, schema Schema) error {
 	if schema == nil {
 		return nil
 	} else if mpr, ok := schema.(Mapper); ok {
@@ -139,7 +139,7 @@ func (mn *MapperNode) doDefineSchema(key types.Key, schema Schema) error {
 }
 
 // Map performs the actual mapping of the key-value pair.
-func (mn *MapperNode) Map(kv *types.KeyValue) (*types.KeyValue, error) {
+func (mn *MapperNode) Map(kv *KeyValue) (*KeyValue, error) {
 	if ptr := mn.Find(kv.Key); ptr != nil && ptr.Mpr != nil {
 		if mkv, err := ptr.Mpr.Map(kv); err != nil {
 			return nil, err
@@ -166,7 +166,7 @@ func NewConvMapper(conv Converter) *ConvMapper {
 
 // Map returns a key-value pair if the Converter recognised the value.
 // Returns nil, err otherwise.
-func (cm *ConvMapper) Map(kv *types.KeyValue) (*types.KeyValue, error) {
+func (cm *ConvMapper) Map(kv *KeyValue) (*KeyValue, error) {
 	if mkv, ok := cm.conv.Convert(kv); ok {
 		return mkv, nil
 	}

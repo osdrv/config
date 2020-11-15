@@ -10,7 +10,7 @@ type Converter interface {
 	// Convert is the function a Converter is expected to define. Returns
 	// a converted value and a boolean flag indicating whether the conversion
 	// took a place.
-	Convert(kv *types.KeyValue) (*types.KeyValue, bool)
+	Convert(kv *KeyValue) (*KeyValue, bool)
 }
 
 // IdentityConverter represents an identity function returning the original
@@ -20,7 +20,7 @@ type IdentityConverter struct{}
 var _ Converter = (*IdentityConverter)(nil)
 
 // Convert returns the kv pair itself and true, no matter what value is provided.
-func (*IdentityConverter) Convert(kv *types.KeyValue) (*types.KeyValue, bool) {
+func (*IdentityConverter) Convert(kv *KeyValue) (*KeyValue, bool) {
 	return kv, true
 }
 
@@ -31,9 +31,9 @@ var _ Converter = (*IntPtrToIntConverter)(nil)
 
 // Convert returns an integer and true if the argument value is a pointer to int.
 // Returns nil, false if cast to *int fails.
-func (*IntPtrToIntConverter) Convert(kv *types.KeyValue) (*types.KeyValue, bool) {
+func (*IntPtrToIntConverter) Convert(kv *KeyValue) (*KeyValue, bool) {
 	if pv, ok := kv.Value.(*int); ok {
-		return &types.KeyValue{Key: kv.Key, Value: *pv}, true
+		return &KeyValue{Key: kv.Key, Value: *pv}, true
 	}
 	return nil, false
 }
@@ -45,9 +45,9 @@ var _ Converter = (*BoolPtrToBoolConverter)(nil)
 
 // Convert returns a bool and true if the argument value is a poiter to bool.
 // Returns nil, false if cast to *bool fails.
-func (*BoolPtrToBoolConverter) Convert(kv *types.KeyValue) (*types.KeyValue, bool) {
+func (*BoolPtrToBoolConverter) Convert(kv *KeyValue) (*KeyValue, bool) {
 	if pv, ok := kv.Value.(*bool); ok {
-		return &types.KeyValue{Key: kv.Key, Value: *pv}, true
+		return &KeyValue{Key: kv.Key, Value: *pv}, true
 	}
 	return nil, false
 }
@@ -59,9 +59,9 @@ var _ Converter = (*StrPtrToStrConverter)(nil)
 
 // Convert returns a string and true if the argument value is a pointer to string.
 // Returns nil, false if cast to *string fails.
-func (*StrPtrToStrConverter) Convert(kv *types.KeyValue) (*types.KeyValue, bool) {
+func (*StrPtrToStrConverter) Convert(kv *KeyValue) (*KeyValue, bool) {
 	if spv, ok := kv.Value.(*string); ok {
-		return &types.KeyValue{Key: kv.Key, Value: *spv}, true
+		return &KeyValue{Key: kv.Key, Value: *spv}, true
 	}
 	return nil, false
 }
@@ -74,13 +74,13 @@ var _ Converter = (*StrToBoolConverter)(nil)
 // Convert returns true, true for strings "true", "1", "y".
 // For strings "false", "0" and "n" returns false, true.
 // Returns false, false otherwise treating the case as non-successful conversion.
-func (*StrToBoolConverter) Convert(kv *types.KeyValue) (*types.KeyValue, bool) {
+func (*StrToBoolConverter) Convert(kv *KeyValue) (*KeyValue, bool) {
 	if sv, ok := kv.Value.(string); ok {
 		switch sv {
 		case "true", "1", "y":
-			return &types.KeyValue{Key: kv.Key, Value: true}, true
+			return &KeyValue{Key: kv.Key, Value: true}, true
 		case "false", "0", "n":
-			return &types.KeyValue{Key: kv.Key, Value: false}, true
+			return &KeyValue{Key: kv.Key, Value: false}, true
 		}
 	}
 	return nil, false
@@ -93,11 +93,11 @@ var _ Converter = (*StrToIntConverter)(nil)
 
 // Convert returns an int, true if the argument value can be parsed with
 // strconv.Atoi. Returns nil, false otherwise.
-func (*StrToIntConverter) Convert(kv *types.KeyValue) (*types.KeyValue, bool) {
+func (*StrToIntConverter) Convert(kv *KeyValue) (*KeyValue, bool) {
 	if sv, ok := kv.Value.(string); ok {
 		s, err := strconv.Atoi(sv)
 		if err == nil {
-			return &types.KeyValue{Key: kv.Key, Value: s}, true
+			return &KeyValue{Key: kv.Key, Value: s}, true
 		}
 	}
 	return nil, false
@@ -111,7 +111,7 @@ var _ Converter = (*IntToBoolConverter)(nil)
 // Convert returns false, true for the argument value = 0.
 // Returns true, true for the argument value = 1.
 // Returns nil, false otherwise.
-func (*IntToBoolConverter) Convert(kv *types.KeyValue) (*types.KeyValue, bool) {
+func (*IntToBoolConverter) Convert(kv *KeyValue) (*KeyValue, bool) {
 	if mv, ok := kv.Value.(int); ok {
 		var v bool
 		if mv == 0 {
@@ -121,7 +121,7 @@ func (*IntToBoolConverter) Convert(kv *types.KeyValue) (*types.KeyValue, bool) {
 		} else {
 			return nil, false
 		}
-		return &types.KeyValue{Key: kv.Key, Value: v}, true
+		return &KeyValue{Key: kv.Key, Value: v}, true
 	}
 	return nil, false
 }
@@ -133,9 +133,9 @@ var _ Converter = (*IntToStrConverter)(nil)
 
 // Convert returns a string, false if the argument value is an int.
 // Returns nil, false otherwise.
-func (*IntToStrConverter) Convert(kv *types.KeyValue) (*types.KeyValue, bool) {
+func (*IntToStrConverter) Convert(kv *KeyValue) (*KeyValue, bool) {
 	if iv, ok := kv.Value.(int); ok {
-		return &types.KeyValue{Key: kv.Key, Value: strconv.Itoa(iv)}, true
+		return &KeyValue{Key: kv.Key, Value: strconv.Itoa(iv)}, true
 	}
 	return nil, false
 }
@@ -148,7 +148,7 @@ var _ Converter = (*IfIntConverter)(nil)
 
 // Convert returns int, true if the value is int.
 // Returns nil, false otherwise.
-func (*IfIntConverter) Convert(kv *types.KeyValue) (*types.KeyValue, bool) {
+func (*IfIntConverter) Convert(kv *KeyValue) (*KeyValue, bool) {
 	if _, ok := kv.Value.(int); ok {
 		return kv, true
 	}
@@ -163,7 +163,7 @@ var _ Converter = (*IfStrConverter)(nil)
 
 // Convert returns string, true if the argument value is a string.
 // Returns nil, false otherwise.
-func (*IfStrConverter) Convert(kv *types.KeyValue) (*types.KeyValue, bool) {
+func (*IfStrConverter) Convert(kv *KeyValue) (*KeyValue, bool) {
 	if _, ok := kv.Value.(string); ok {
 		return kv, true
 	}
@@ -178,7 +178,7 @@ var _ Converter = (*IfBoolConverter)(nil)
 
 // Convert returns bool, true if the value is a bool.
 // Returns nil, false otherwise.
-func (*IfBoolConverter) Convert(kv *types.KeyValue) (*types.KeyValue, bool) {
+func (*IfBoolConverter) Convert(kv *KeyValue) (*KeyValue, bool) {
 	if _, ok := kv.Value.(bool); ok {
 		return kv, true
 	}
@@ -228,7 +228,7 @@ func NewCompositeConverter(strategy CompositionStrategy, convs ...Converter) *Co
 }
 
 // Convert executes the conversion logic defined by the conversion strategy.
-func (cc *CompositeConverter) Convert(kv *types.KeyValue) (*types.KeyValue, bool) {
+func (cc *CompositeConverter) Convert(kv *KeyValue) (*KeyValue, bool) {
 	switch cc.strategy {
 	case CompNone:
 		return kv, true
@@ -250,7 +250,7 @@ func (cc *CompositeConverter) Convert(kv *types.KeyValue) (*types.KeyValue, bool
 		}
 		return nil, false
 	case CompLast:
-		var res *types.KeyValue
+		var res *KeyValue
 		var resok bool
 		for _, conv := range cc.converters {
 			if mkv, ok := conv.Convert(kv); ok {

@@ -6,33 +6,29 @@ import (
 	"testing"
 )
 
-func intptr(v int) *int       { return &v }
-func strptr(v string) *string { return &v }
-func boolptr(v bool) *bool    { return &v }
-
 type convAct struct {
-	res types.Value
+	res Value
 	ok  bool
 }
 
 type testConverter struct {
-	conv func(kv *types.KeyValue) (*types.KeyValue, bool)
+	conv func(kv *KeyValue) (*KeyValue, bool)
 }
 
 var _ Converter = (*testConverter)(nil)
 
 func newTestConverter(act convAct) *testConverter {
 	return &testConverter{
-		conv: func(kv *types.KeyValue) (*types.KeyValue, bool) {
+		conv: func(kv *KeyValue) (*KeyValue, bool) {
 			if act.ok {
-				return &types.KeyValue{Key: kv.Key, Value: act.res}, act.ok
+				return &KeyValue{Key: kv.Key, Value: act.res}, act.ok
 			}
 			return nil, false
 		},
 	}
 }
 
-func (tc *testConverter) Convert(kv *types.KeyValue) (*types.KeyValue, bool) {
+func (tc *testConverter) Convert(kv *KeyValue) (*KeyValue, bool) {
 	return tc.conv(kv)
 }
 
@@ -53,7 +49,7 @@ func TestIdentityConverter(t *testing.T) {
 
 	for ix, testCase := range tests {
 		t.Run(fmt.Sprintf("Test #%d", ix), func(t *testing.T) {
-			in := &types.KeyValue{Key: nil, Value: testCase.inVal}
+			in := &KeyValue{Key: nil, Value: testCase.inVal}
 			out, ok := Identity.Convert(in)
 			if ok != testCase.outFlag {
 				t.Errorf("Unexpected Convert flag: want: %t, got: %t", testCase.outFlag, ok)
@@ -89,7 +85,7 @@ func TestIntToStrConverter(t *testing.T) {
 
 	for ix, testCase := range tests {
 		t.Run(fmt.Sprintf("Test #%d", ix), func(t *testing.T) {
-			in := &types.KeyValue{Key: nil, Value: testCase.inVal}
+			in := &KeyValue{Key: nil, Value: testCase.inVal}
 			out, ok := IntToStr.Convert(in)
 			if ok != testCase.outFlag {
 				t.Errorf("Unexpected Convert flag: want: %t, got: %t", testCase.outFlag, ok)
@@ -125,7 +121,7 @@ func TestIntPtrToIntConverter(t *testing.T) {
 
 	for ix, testCase := range tests {
 		t.Run(fmt.Sprintf("Test #%d", ix), func(t *testing.T) {
-			in := &types.KeyValue{Key: nil, Value: testCase.inVal}
+			in := &KeyValue{Key: nil, Value: testCase.inVal}
 			out, ok := IntPtrToInt.Convert(in)
 			if ok != testCase.outFlag {
 				t.Errorf("Unexpected Convert flag: want: %t, got: %t", testCase.outFlag, ok)
@@ -161,7 +157,7 @@ func TestStrPtrToStrConverter(t *testing.T) {
 
 	for ix, testCase := range tests {
 		t.Run(fmt.Sprintf("Test #%d", ix), func(t *testing.T) {
-			in := &types.KeyValue{Key: nil, Value: testCase.inVal}
+			in := &KeyValue{Key: nil, Value: testCase.inVal}
 			out, ok := StrPtrToStr.Convert(in)
 			if ok != testCase.outFlag {
 				t.Errorf("Unexpected Convert flag: want: %t, got: %t", testCase.outFlag, ok)
@@ -195,7 +191,7 @@ func TestBoolPtrToBoolConverter(t *testing.T) {
 
 	for ix, testCase := range tests {
 		t.Run(fmt.Sprintf("Test #%d", ix), func(t *testing.T) {
-			in := &types.KeyValue{Key: nil, Value: testCase.inVal}
+			in := &KeyValue{Key: nil, Value: testCase.inVal}
 			out, ok := BoolPtrToBool.Convert(in)
 			if ok != testCase.outFlag {
 				t.Errorf("Unexpected Convert flag: want: %t, got: %t", testCase.outFlag, ok)
@@ -231,7 +227,7 @@ func TestStrToIntConverter(t *testing.T) {
 
 	for ix, testCase := range tests {
 		t.Run(fmt.Sprintf("Test #%d", ix), func(t *testing.T) {
-			in := &types.KeyValue{Key: nil, Value: testCase.inVal}
+			in := &KeyValue{Key: nil, Value: testCase.inVal}
 			out, ok := StrToInt.Convert(in)
 			if ok != testCase.outFlag {
 				t.Errorf("Unexpected Convert flag: want: %t, got: %t", testCase.outFlag, ok)
@@ -268,7 +264,7 @@ func TestIfIntConverter(t *testing.T) {
 
 	for ix, testCase := range tests {
 		t.Run(fmt.Sprintf("Test #%d", ix), func(t *testing.T) {
-			in := &types.KeyValue{Key: nil, Value: testCase.inVal}
+			in := &KeyValue{Key: nil, Value: testCase.inVal}
 			out, ok := IfInt.Convert(in)
 			if ok != testCase.outFlag {
 				t.Errorf("Unexpected Convert flag: want: %t, got: %t", testCase.outFlag, ok)
@@ -303,7 +299,7 @@ func TestIfStrConverter(t *testing.T) {
 
 	for ix, testCase := range tests {
 		t.Run(fmt.Sprintf("Test #%d", ix), func(t *testing.T) {
-			in := &types.KeyValue{Key: nil, Value: testCase.inVal}
+			in := &KeyValue{Key: nil, Value: testCase.inVal}
 			out, ok := IfStr.Convert(in)
 			if ok != testCase.outFlag {
 				t.Errorf("Unexpected Convert flag: want: %t, got: %t", testCase.outFlag, ok)
@@ -339,7 +335,7 @@ func TestIfBoolConverter(t *testing.T) {
 
 	for ix, testCase := range tests {
 		t.Run(fmt.Sprintf("Test #%d", ix), func(t *testing.T) {
-			in := &types.KeyValue{Key: nil, Value: testCase.inVal}
+			in := &KeyValue{Key: nil, Value: testCase.inVal}
 			out, ok := IfBool.Convert(in)
 			if ok != testCase.outFlag {
 				t.Errorf("Unexpected Convert flag: want: %t, got: %t", testCase.outFlag, ok)
@@ -361,7 +357,7 @@ func TestCompositeConverter_CompAnd(t *testing.T) {
 	tests := []struct {
 		name   string
 		chain  []convAct
-		expVal types.Value
+		expVal Value
 		expOk  bool
 	}{
 		{
@@ -421,7 +417,7 @@ func TestCompositeConverter_CompAnd(t *testing.T) {
 			comp := NewCompositeConverter(CompAnd, convChain...)
 			// None of the converters react to the input kv, so
 			// passing a nil value
-			got, gotOk := comp.Convert(&types.KeyValue{Key: nil, Value: nil})
+			got, gotOk := comp.Convert(&KeyValue{Key: nil, Value: nil})
 			if gotOk != testCase.expOk {
 				t.Errorf("Unexpected Convert flag: want: %t, got: %t", testCase.expOk, gotOk)
 			}
@@ -439,7 +435,7 @@ func TestCompositeConverterCompOr(t *testing.T) {
 	tests := []struct {
 		name   string
 		chain  []convAct
-		expVal types.Value
+		expVal Value
 		expOk  bool
 	}{
 		{
@@ -508,7 +504,7 @@ func TestCompositeConverterCompOr(t *testing.T) {
 			comp := NewCompositeConverter(CompOr, convChain...)
 			// None of the converters react to the input kv, so
 			// passing a nil value
-			got, gotOk := comp.Convert(&types.KeyValue{Key: nil, Value: nil})
+			got, gotOk := comp.Convert(&KeyValue{Key: nil, Value: nil})
 			if gotOk != testCase.expOk {
 				t.Errorf("Unexpected Convert flag: want: %t, got: %t", testCase.expOk, gotOk)
 			}
@@ -526,7 +522,7 @@ func TestCompositeConverterCompFirst(t *testing.T) {
 	tests := []struct {
 		name   string
 		chain  []convAct
-		expVal types.Value
+		expVal Value
 		expOk  bool
 	}{
 		{
@@ -595,7 +591,7 @@ func TestCompositeConverterCompFirst(t *testing.T) {
 			comp := NewCompositeConverter(CompFirst, convChain...)
 			// None of the converters react to the input kv, so
 			// passing a nil value
-			got, gotOk := comp.Convert(&types.KeyValue{Key: nil, Value: nil})
+			got, gotOk := comp.Convert(&KeyValue{Key: nil, Value: nil})
 			if gotOk != testCase.expOk {
 				t.Errorf("Unexpected Convert flag: want: %t, got: %t", testCase.expOk, gotOk)
 			}
@@ -613,7 +609,7 @@ func TestCompositeConverterCompLast(t *testing.T) {
 	tests := []struct {
 		name   string
 		chain  []convAct
-		expVal types.Value
+		expVal Value
 		expOk  bool
 	}{
 		{
@@ -682,7 +678,7 @@ func TestCompositeConverterCompLast(t *testing.T) {
 			comp := NewCompositeConverter(CompLast, convChain...)
 			// None of the converters react to the input kv, so
 			// passing a nil value
-			got, gotOk := comp.Convert(&types.KeyValue{Key: nil, Value: nil})
+			got, gotOk := comp.Convert(&KeyValue{Key: nil, Value: nil})
 			if gotOk != testCase.expOk {
 				t.Errorf("Unexpected Convert flag: want: %t, got: %t", testCase.expOk, gotOk)
 			}

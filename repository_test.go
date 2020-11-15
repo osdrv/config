@@ -13,11 +13,11 @@ func intptr(v int) *int       { return &v }
 func flushMappers() {
 	mappersMx.Lock()
 	defer mappersMx.Unlock()
-	mappers = cast.NewMapperNode()
+	mappers = NewMapperNode()
 }
 
 type queueItem struct {
-	k types.Key
+	k Key
 	n *node
 }
 
@@ -41,12 +41,12 @@ func flattenRepo(repo *Repository) map[string][]Provider {
 }
 
 type TestProv struct {
-	val     types.Value
+	val     Value
 	weight  int
 	isSetUp bool
 }
 
-func NewTestProv(val types.Value, weight int) *TestProv {
+func NewTestProv(val Value, weight int) *TestProv {
 	return &TestProv{
 		val:     val,
 		weight:  weight,
@@ -61,8 +61,8 @@ func (tp *TestProv) SetUp(_ *Repository) error {
 
 func (tp *TestProv) TearDown(_ *Repository) error { return nil }
 
-func (tp *TestProv) Get(key types.Key) (*types.KeyValue, bool) {
-	return &types.KeyValue{
+func (tp *TestProv) Get(key Key) (*KeyValue, bool) {
+	return &KeyValue{
 		Key:   key,
 		Value: tp.val,
 	}, true
@@ -75,35 +75,35 @@ func (tp *TestProv) Depends() []string { return []string{} }
 func TestGetSingleProvider(t *testing.T) {
 	repo := NewRepository()
 	prov := NewTestProv(42, 10)
-	key := types.NewKey("foo.bar.baz")
+	key := NewKey("foo.bar.baz")
 	repo.RegisterKey(key, prov)
 
 	tests := []struct {
-		key types.Key
+		key Key
 		ok  bool
-		val types.Value
+		val Value
 	}{
 		{
-			key: types.NewKey("foo"),
+			key: NewKey("foo"),
 			ok:  true,
-			val: map[string]types.Value{
-				"bar": map[string]types.Value{
+			val: map[string]Value{
+				"bar": map[string]Value{
 					"baz": 42,
 				},
 			},
 		},
 		{
-			key: types.NewKey("foo.bar"),
+			key: NewKey("foo.bar"),
 			ok:  true,
-			val: map[string]types.Value{"baz": 42},
+			val: map[string]Value{"baz": 42},
 		},
 		{
-			key: types.NewKey("foo.bar.baz"),
+			key: NewKey("foo.bar.baz"),
 			ok:  true,
 			val: 42,
 		},
 		{
-			key: types.NewKey("foo.bar.baz.boo"),
+			key: NewKey("foo.bar.baz.boo"),
 			ok:  false,
 			val: nil,
 		},
@@ -129,37 +129,37 @@ func TestTrioProviderSingleKey(t *testing.T) {
 	prov2 := NewTestProv(20, 20)
 	prov3 := NewTestProv(30, 30)
 
-	key := types.NewKey("foo.bar.baz")
+	key := NewKey("foo.bar.baz")
 	repo.RegisterKey(key, prov1)
 	repo.RegisterKey(key, prov2)
 	repo.RegisterKey(key, prov3)
 
 	tests := []struct {
-		key types.Key
+		key Key
 		ok  bool
-		val types.Value
+		val Value
 	}{
 		{
-			key: types.NewKey("foo"),
+			key: NewKey("foo"),
 			ok:  true,
-			val: map[string]types.Value{
-				"bar": map[string]types.Value{
+			val: map[string]Value{
+				"bar": map[string]Value{
 					"baz": 30,
 				},
 			},
 		},
 		{
-			key: types.NewKey("foo.bar"),
+			key: NewKey("foo.bar"),
 			ok:  true,
-			val: map[string]types.Value{"baz": 30},
+			val: map[string]Value{"baz": 30},
 		},
 		{
-			key: types.NewKey("foo.bar.baz"),
+			key: NewKey("foo.bar.baz"),
 			ok:  true,
 			val: 30,
 		},
 		{
-			key: types.NewKey("foo.bar.baz.boo"),
+			key: NewKey("foo.bar.baz.boo"),
 			ok:  false,
 			val: nil,
 		},
@@ -183,59 +183,59 @@ func TestTrioProviderThreeKeys(t *testing.T) {
 	prov2 := NewTestProv(20, 20)
 	prov3 := NewTestProv(30, 30)
 
-	key1 := types.NewKey("k1.k1.k1")
-	key2 := types.NewKey("k2.k2.k2")
-	key3 := types.NewKey("k3.k3.k3")
+	key1 := NewKey("k1.k1.k1")
+	key2 := NewKey("k2.k2.k2")
+	key3 := NewKey("k3.k3.k3")
 	repo.RegisterKey(key1, prov1)
 	repo.RegisterKey(key2, prov2)
 	repo.RegisterKey(key3, prov3)
 
 	tests := []struct {
-		key types.Key
+		key Key
 		ok  bool
-		val types.Value
+		val Value
 	}{
 		{
-			key: types.NewKey("k1.k1.k1"),
+			key: NewKey("k1.k1.k1"),
 			ok:  true,
 			val: prov1.val,
 		},
 		{
-			key: types.NewKey("k2.k2.k2"),
+			key: NewKey("k2.k2.k2"),
 			ok:  true,
 			val: prov2.val,
 		},
 		{
-			key: types.NewKey("k3.k3.k3"),
+			key: NewKey("k3.k3.k3"),
 			ok:  true,
 			val: prov3.val,
 		},
 		{
-			key: types.NewKey(""),
+			key: NewKey(""),
 			ok:  false,
 			val: nil,
 		},
 		{
-			key: types.NewKey("k1.k2.k3"),
+			key: NewKey("k1.k2.k3"),
 			ok:  false,
 			val: nil,
 		},
 		{
-			key: types.NewKey("k1"),
+			key: NewKey("k1"),
 			ok:  true,
-			val: map[string]types.Value{
-				"k1": map[string]types.Value{
+			val: map[string]Value{
+				"k1": map[string]Value{
 					"k1": prov1.val,
 				},
 			},
 		},
 		{
-			key: types.NewKey("k2.k2"),
+			key: NewKey("k2.k2"),
 			ok:  true,
-			val: map[string]types.Value{"k2": prov2.val},
+			val: map[string]Value{"k2": prov2.val},
 		},
 		{
-			key: types.NewKey("k3.k3.k3.k3"),
+			key: NewKey("k3.k3.k3.k3"),
 			ok:  false,
 			val: nil,
 		},
@@ -259,17 +259,17 @@ func TestTrioProviderNestingKey(t *testing.T) {
 	prov2 := NewTestProv(20, 20)
 	prov3 := NewTestProv(30, 30)
 
-	key1 := types.NewKey("foo")
-	key2 := types.NewKey("foo.bar")
-	key3 := types.NewKey("foo.bar.baz")
+	key1 := NewKey("foo")
+	key2 := NewKey("foo.bar")
+	key3 := NewKey("foo.bar.baz")
 	repo.RegisterKey(key1, prov1)
 	repo.RegisterKey(key2, prov2)
 	repo.RegisterKey(key3, prov3)
 
 	tests := []struct {
-		key types.Key
+		key Key
 		ok  bool
-		val types.Value
+		val Value
 	}{
 		{
 			key: key1,
@@ -287,12 +287,12 @@ func TestTrioProviderNestingKey(t *testing.T) {
 			val: prov3.val,
 		},
 		{
-			key: types.NewKey(""),
+			key: NewKey(""),
 			ok:  false,
 			val: nil,
 		},
 		{
-			key: types.NewKey("foo.bar.baz.boo"),
+			key: NewKey("foo.bar.baz.boo"),
 			ok:  false,
 			val: nil,
 		},
@@ -331,8 +331,8 @@ func Test_getAll(t *testing.T) {
 			},
 		},
 	}
-	want := map[string]types.Value{
-		"foo": map[string]types.Value{
+	want := map[string]Value{
+		"foo": map[string]Value{
 			"baz": 10,
 		},
 		"bar": 20,
@@ -354,25 +354,25 @@ type systemcfg struct {
 
 type admincfgmapper struct{}
 
-var _ cast.Mapper = (*admincfgmapper)(nil)
+var _ Mapper = (*admincfgmapper)(nil)
 
-func (acm *admincfgmapper) Map(kv *types.KeyValue) (*types.KeyValue, error) {
-	if vmap, ok := kv.Value.(map[string]types.Value); ok {
+func (acm *admincfgmapper) Map(kv *KeyValue) (*KeyValue, error) {
+	if vmap, ok := kv.Value.(map[string]Value); ok {
 		res := &admincfg{}
 		if enabled, ok := vmap["enabled"]; ok {
 			res.enabled = enabled.(bool)
 		}
-		return &types.KeyValue{Key: kv.Key, Value: res}, nil
+		return &KeyValue{Key: kv.Key, Value: res}, nil
 	}
 	return nil, fmt.Errorf("Conversion to admincfg failed for key: %q value: %#v", kv.Key.String(), kv.Value)
 }
 
 type systemcfgmapper struct{}
 
-var _ cast.Mapper = (*systemcfgmapper)(nil)
+var _ Mapper = (*systemcfgmapper)(nil)
 
-func (scm *systemcfgmapper) Map(kv *types.KeyValue) (*types.KeyValue, error) {
-	if vmap, ok := kv.Value.(map[string]types.Value); ok {
+func (scm *systemcfgmapper) Map(kv *KeyValue) (*KeyValue, error) {
+	if vmap, ok := kv.Value.(map[string]Value); ok {
 		res := &systemcfg{}
 		if ac, ok := vmap["admin"]; ok {
 			if acptr, ok := ac.(*admincfg); ok {
@@ -384,43 +384,43 @@ func (scm *systemcfgmapper) Map(kv *types.KeyValue) (*types.KeyValue, error) {
 		if maxproc, ok := vmap["maxprocs"]; ok {
 			res.maxproc = maxproc.(int)
 		}
-		return &types.KeyValue{Key: kv.Key, Value: res}, nil
+		return &KeyValue{Key: kv.Key, Value: res}, nil
 	}
 	return nil, fmt.Errorf("Conversion to systemcfg failed for key: %q value: %#v", kv.Key.String(), kv.Value)
 }
 
 func Test_DefineSchema_Primitive(t *testing.T) {
-	repoSchema := cast.Schema(map[string]cast.Schema{
-		"system": map[string]cast.Schema{
+	repoSchema := Schema(map[string]Schema{
+		"system": map[string]Schema{
 			"__self__": nil,
-			"maxproc":  cast.ToInt,
-			"admin": map[string]cast.Schema{
+			"maxproc":  ToInt,
+			"admin": map[string]Schema{
 				"__self__": nil,
-				"enabled":  cast.ToBool,
+				"enabled":  ToBool,
 			},
 		},
 	})
 
 	tests := []struct {
 		name     string
-		input    map[string]types.Value
-		expected map[string]types.Value
+		input    map[string]Value
+		expected map[string]Value
 	}{
 		{
 			name: "No casting",
-			input: map[string]types.Value{
+			input: map[string]Value{
 				"system.maxproc":       4,
 				"system.admin.enabled": true,
 			},
-			expected: map[string]types.Value{
+			expected: map[string]Value{
 				"system.maxproc":       4,
 				"system.admin.enabled": true,
-				"system.admin": map[string]types.Value{
+				"system.admin": map[string]Value{
 					"enabled": true,
 				},
-				"system": map[string]types.Value{
+				"system": map[string]Value{
 					"maxproc": 4,
-					"admin": map[string]types.Value{
+					"admin": map[string]Value{
 						"enabled": true,
 					},
 				},
@@ -428,19 +428,19 @@ func Test_DefineSchema_Primitive(t *testing.T) {
 		},
 		{
 			name: "Casting from all-strings",
-			input: map[string]types.Value{
+			input: map[string]Value{
 				"system.maxproc":       "4",
 				"system.admin.enabled": "true",
 			},
-			expected: map[string]types.Value{
+			expected: map[string]Value{
 				"system.maxproc":       4,
 				"system.admin.enabled": true,
-				"system.admin": map[string]types.Value{
+				"system.admin": map[string]Value{
 					"enabled": true,
 				},
-				"system": map[string]types.Value{
+				"system": map[string]Value{
 					"maxproc": 4,
-					"admin": map[string]types.Value{
+					"admin": map[string]Value{
 						"enabled": true,
 					},
 				},
@@ -448,19 +448,19 @@ func Test_DefineSchema_Primitive(t *testing.T) {
 		},
 		{
 			name: "Casting from ptrs",
-			input: map[string]types.Value{
+			input: map[string]Value{
 				"system.maxproc":       intptr(4),
 				"system.admin.enabled": boolptr(true),
 			},
-			expected: map[string]types.Value{
+			expected: map[string]Value{
 				"system.maxproc":       4,
 				"system.admin.enabled": true,
-				"system.admin": map[string]types.Value{
+				"system.admin": map[string]Value{
 					"enabled": true,
 				},
-				"system": map[string]types.Value{
+				"system": map[string]Value{
 					"maxproc": 4,
-					"admin": map[string]types.Value{
+					"admin": map[string]Value{
 						"enabled": true,
 					},
 				},
@@ -476,11 +476,11 @@ func Test_DefineSchema_Primitive(t *testing.T) {
 			repo.DefineSchema(repoSchema)
 
 			for path, value := range testCase.input {
-				repo.RegisterKey(types.NewKey(path), NewTestProv(value, DefaultWeight))
+				repo.RegisterKey(NewKey(path), NewTestProv(value, DefaultWeight))
 			}
 
 			for lookupPath, expVal := range testCase.expected {
-				gotVal, gotOk := repo.Get(types.NewKey(lookupPath))
+				gotVal, gotOk := repo.Get(NewKey(lookupPath))
 				if !gotOk {
 					t.Fatalf("Expected lookup for key %q to find a value, none returned", lookupPath)
 				}
@@ -493,29 +493,29 @@ func Test_DefineSchema_Primitive(t *testing.T) {
 }
 
 func Test_DefineSchema_Struct(t *testing.T) {
-	repoSchema := cast.Schema(map[string]cast.Schema{
-		"system": map[string]cast.Schema{
+	repoSchema := Schema(map[string]Schema{
+		"system": map[string]Schema{
 			"__self__": &systemcfgmapper{},
-			"maxprocs": cast.ToInt,
-			"admin": map[string]cast.Schema{
+			"maxprocs": ToInt,
+			"admin": map[string]Schema{
 				"__self__": &admincfgmapper{},
-				"enabled":  cast.ToBool,
+				"enabled":  ToBool,
 			},
 		},
 	})
 
 	tests := []struct {
 		name     string
-		input    map[string]types.Value
-		expected map[string]types.Value
+		input    map[string]Value
+		expected map[string]Value
 	}{
 		{
 			name: "No casting",
-			input: map[string]types.Value{
+			input: map[string]Value{
 				"system.maxprocs":      4,
 				"system.admin.enabled": true,
 			},
-			expected: map[string]types.Value{
+			expected: map[string]Value{
 				"system.maxprocs":      4,
 				"system.admin.enabled": true,
 				"system.admin":         &admincfg{enabled: true},
@@ -524,11 +524,11 @@ func Test_DefineSchema_Struct(t *testing.T) {
 		},
 		{
 			name: "Casting from all-strings",
-			input: map[string]types.Value{
+			input: map[string]Value{
 				"system.maxprocs":      "4",
 				"system.admin.enabled": "true",
 			},
-			expected: map[string]types.Value{
+			expected: map[string]Value{
 				"system.maxprocs":      4,
 				"system.admin.enabled": true,
 				"system.admin":         &admincfg{enabled: true},
@@ -537,11 +537,11 @@ func Test_DefineSchema_Struct(t *testing.T) {
 		},
 		{
 			name: "Casting from ptrs",
-			input: map[string]types.Value{
+			input: map[string]Value{
 				"system.maxprocs":      intptr(4),
 				"system.admin.enabled": boolptr(true),
 			},
-			expected: map[string]types.Value{
+			expected: map[string]Value{
 				"system.maxprocs":      4,
 				"system.admin.enabled": true,
 				"system.admin":         &admincfg{enabled: true},
@@ -558,11 +558,11 @@ func Test_DefineSchema_Struct(t *testing.T) {
 			repo.DefineSchema(repoSchema)
 
 			for path, value := range testCase.input {
-				repo.RegisterKey(types.NewKey(path), NewTestProv(value, DefaultWeight))
+				repo.RegisterKey(NewKey(path), NewTestProv(value, DefaultWeight))
 			}
 
 			for lookupPath, expVal := range testCase.expected {
-				gotVal, gotOk := repo.Get(types.NewKey(lookupPath))
+				gotVal, gotOk := repo.Get(NewKey(lookupPath))
 				if !gotOk {
 					t.Fatalf("Expected lookup for key %q to find a value, none returned", lookupPath)
 				}
@@ -579,10 +579,10 @@ func TestExplain(t *testing.T) {
 	prov1 := NewTestProv("foo", 10)
 	prov2 := NewTestProv("bar", 20)
 
-	repo.RegisterKey(types.NewKey("foo.bar.1"), prov1)
-	repo.RegisterKey(types.NewKey("foo.baz.2"), prov2)
-	repo.RegisterKey(types.NewKey("foo.moo.3"), prov1)
-	repo.RegisterKey(types.NewKey("foo.moo.3"), prov2)
+	repo.RegisterKey(NewKey("foo.bar.1"), prov1)
+	repo.RegisterKey(NewKey("foo.baz.2"), prov2)
+	repo.RegisterKey(NewKey("foo.moo.3"), prov1)
+	repo.RegisterKey(NewKey("foo.moo.3"), prov2)
 
 	got := repo.Explain()
 

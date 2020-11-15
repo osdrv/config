@@ -7,12 +7,12 @@ import (
 type ScalarConfigProvider struct {
 	weight int
 	name   string
-	kv     *types.KeyValue
+	kv     *KeyValue
 }
 
 var _ Provider = (*ScalarConfigProvider)(nil)
 
-func NewScalarConfigProvider(kv *types.KeyValue, repo *Repository, weight int) (*ScalarConfigProvider, error) {
+func NewScalarConfigProvider(kv *KeyValue, repo *Repository, weight int) (*ScalarConfigProvider, error) {
 	p := &ScalarConfigProvider{
 		weight: weight,
 		kv:     kv,
@@ -39,7 +39,7 @@ func (*ScalarConfigProvider) TearDown(*Repository) error {
 	return nil
 }
 
-func (s *ScalarConfigProvider) Get(key types.Key) (*types.KeyValue, bool) {
+func (s *ScalarConfigProvider) Get(key Key) (*KeyValue, bool) {
 	if key.Equals(s.kv.Key) {
 		return s.kv, true
 	}
