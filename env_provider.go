@@ -25,15 +25,22 @@ type EnvProvider struct {
 	weight   int
 	registry map[string]Value
 	ready    chan struct{}
+
+	prefix string
 }
 
 var _ Provider = (*EnvProvider)(nil)
 
-// NewEnvProvider returns a new instance of EnvProvider.
 func NewEnvProvider(repo *Repository, weight int) (*EnvProvider, error) {
+	return NewEnvProviderWithPrefix(repo, weight, "CONFIG_")
+}
+
+// NewEnvProvider returns a new instance of EnvProvider.
+func NewEnvProviderWithPrefix(repo *Repository, weight int, prefix string) (*EnvProvider, error) {
 	prov := &EnvProvider{
 		weight: weight,
 		ready:  make(chan struct{}),
+		prefix: prefix,
 	}
 	repo.RegisterProvider(prov)
 
@@ -59,10 +66,9 @@ func (ep *EnvProvider) SetUp(repo *Repository) error {
 	var v interface{}
 
 	for _, kv := range envVars() {
-		if !strings.HasPrefix(kv, "FLOW_") {
+		if !strings.HasPrefix(kv, ep.prefix) {
 			continue
 		}
-		// Clear out "FLOW_"
 		kv = kv[5:]
 		if ix := strings.Index(kv, "="); ix != -1 {
 			k, v = kv[:ix], kv[ix+1:]
