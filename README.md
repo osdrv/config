@@ -29,10 +29,10 @@ config := map[string]interface{}{
   foo  bar
 ```
 
-This is an example of what we can define a `flat` config: the config object
-itself is a root that contains of value leafs.
+This is an example of what we can define as a `flat` config: the config object
+itself is the root that gathers leafs(config values).
 
-In practice, massive config objects usually evolve into higher-degree trees.
+In practice, massive config objects usually evolve into higher-degree (depth) trees.
 
 ```go
 config := map[string]interface{}{
@@ -45,7 +45,7 @@ config := map[string]interface{}{
 }
 ```
 
-In this case a config tree looks like:
+In this case the config tree looks like:
 
 ```
     root
@@ -55,14 +55,12 @@ In this case a config tree looks like:
   fizz  buzz
 ```
 
-This library is well suited for storing high-cardinality tree structures.
-
 ## Merge trees
 
 The Config library provides a full support for merge trees.
-Assume there are 2 config sources, e.g. environmanet variables and a static
+Assume there are 2 config sources, e.g. environment variables and a static
 config file. Config provides a single entry point for multiple sources by
-merging config trees into a single one.
+merging config trees into a single unit.
 
 Here is an example:
 ```go
@@ -79,16 +77,14 @@ staticFileCfg := map[string]interface{}{
 }
 ```
 
-In practice, it is not convinient to deal with multiple config sources
-independently as this requires a prior established contract on the config key
-sourcing (e.g. a convention that MAXPROCS can only come from the environment,
+it is not practical to deal with multiple config sources
+independently as it requires a prior established contract on the config key
+affinity (e.g. an explicit agreement that golang MAXPROCS can only be defined in the environment variables,
 or: additional attributes should be found in command line arguments).
 
-Instead, we prefer to deal with a merge tree: a structure combining all
-key-values from all sources so the config user doesn't have to discriminate
-between dinstinct config data sources.
-
-What we mean is:
+As an alternative, Config promotes usage of a merge tree: a unified structure combining all
+key-values from all sources so the user doesn't have to have a prior knowledge
+about dinstinct data sources.
 
 ```go
 mergeCfg := map[string]interface{}{
@@ -99,11 +95,12 @@ mergeCfg := map[string]interface{}{
 }
 ```
 
-This structure provides an immediate access to all defined key-value pairs.
+This structure embeds key-value pairs from both initial config sources and
+provides a unified access to the entire config object.
 
 ## Overlapping key resolution
 
-Assume there are 2 data structures:
+Let's assume there are 2 config sources:
 
 ```go
 envCfg := map[string]interface{}{
@@ -121,18 +118,18 @@ staticFileCfg := map[string]interface{}{
 
 A merge tree combining these 2 structures is somewhat non-trivial. Given there
 is no chance the new structure will return both 1 and 42 for the key `foo.bar`:
-there must be a single value. What value should be returned depende on our
-preference, which is defined using weights. The value served by a data source
+there must be a single value. What value should be returned depends on our
+preferences, which are defined using weights. The value served by a data source
 with a highest weight wins. For the sake of simplisity, weights define a global
 order of config sources (providers): not per-key.
 
-Having this defined, we can see what would happen if we provide different
+Having this established, we can see what would happen if we provide different
 weights to the input data structures:
 
 if envCfg has a weight 10 and staticFileCfg is weighted 20, the resulting value
 under the key `foo.bar` would be `42` (favoring staticFileCfg). If we flip the
-weights, the value returned by a merge structure would be 1. If there is only 1
-provider serving this config key, there is no need to resolve the ambiguity.
+weights, the value returned by a merge structure would be 1. If there is only
+one provider serving this config key, no disambiguation is needed.
 
 The merge tree structure is called a `repository`. Config data sources are
 called `config providers`.
