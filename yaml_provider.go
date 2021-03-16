@@ -4,8 +4,13 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	fsnotify "github.com/fsnotify/fsnotify"
 	yaml "gopkg.in/yaml.v2"
+)
+
+const (
+	// CfgPathKey is a string constant used globally to reach up the config
+	// file path setting.
+	CfgPathKey = "config.path"
 )
 
 // Redefined in tests
@@ -25,7 +30,6 @@ type YamlProvider struct {
 	weight   int
 	source   string
 	options  *YamlProviderOptions
-	watcher  *fsnotify.Watcher
 	registry map[string]Value
 	ready    chan struct{}
 }
@@ -71,23 +75,6 @@ func (yp *YamlProvider) SetUp(repo *Repository) error {
 		yp.source = source.(string)
 	}
 
-	// if _, err := os.Stat(yp.source); err != nil {
-	// 	return fmt.Errorf("failed to read yaml config %q: %s", yp.source, err)
-	// }
-
-	if yp.options.Watch {
-		watcher, err := fsnotify.NewWatcher()
-		if err != nil {
-			return fmt.Errorf("failed to start a yaml watcher: %s", err)
-		}
-		if err := watcher.Add(yp.source); err != nil {
-			return fmt.Errorf("failed to add a new watchable file %q: %s", yp.source, err)
-		}
-		yp.watcher = watcher
-
-		go yp.watch()
-	}
-
 	rawData, err := readRaw(yp.source)
 	if err != nil {
 		return err
@@ -118,22 +105,7 @@ func flatten(in map[interface{}]interface{}) map[string]Value {
 	return out
 }
 
-func (yp *YamlProvider) watch() {
-	for event := range yp.watcher.Events {
-		fmt.Printf("Received a fsnotify event: %#v", event)
-		//TODO (olegs): not implemented
-		// if event.Op&fsnotify.Write != 1 {
-		// 	continue
-		// }
-	}
-}
-
 func (yp *YamlProvider) TearDown(repo *Repository) error {
-	if yp.watcher != nil {
-		if err := yp.watcher.Close(); err != nil {
-			return fmt.Errorf("failed to terminate the yaml watcher: %q", err)
-		}
-	}
 	return nil
 }
 

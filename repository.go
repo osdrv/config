@@ -6,20 +6,6 @@ import (
 	"sync"
 )
 
-const (
-	// CfgPathKey is a string constant used globally to reach up the config
-	// file path setting.
-	CfgPathKey = "config.path"
-	// PluginPathKey is a string constant used globally to reach up the plugin
-	// path setting.
-	PluginPathKey = "plugin.path"
-
-	SystemMaxprocs = "system.maxprocs"
-)
-
-// TODO(olegs): implement listener interface
-// type Listener func(*KeyValue)
-
 // Provider is a generic interface for config providers.
 // A method initializing a new instance of Provider must conform to Constructor
 // type.
@@ -112,10 +98,6 @@ func (n *node) findOrCreate(key Key) *node {
 	}
 	return ptr
 }
-
-// func (n *node) subscribe(key Key, listener Listener) {
-// 	panic("not implemented")
-// }
 
 func (n *node) get(repo *Repository, key Key) (*KeyValue, bool) {
 	ptr := n.find(key)
