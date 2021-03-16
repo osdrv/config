@@ -1,8 +1,5 @@
-module github.com/awesome-flow/config
+module github.com/osdrv/config
 
 go 1.15
 
-require (
-	github.com/fsnotify/fsnotify v1.4.9
-	gopkg.in/yaml.v2 v2.3.0
-)
+require gopkg.in/yaml.v2 v2.3.0
